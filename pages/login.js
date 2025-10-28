@@ -14,7 +14,7 @@ class loginPage {
             page.locator('#otp-5')
         ];
     }
-    async loginPage() {
+    async navigateTologinPage() {
         await this.page.goto('https://dev.whaot.com/');
     }
     async clickSignIn() {
@@ -29,4 +29,8 @@ class loginPage {
             await this.otpInputs[i].fill(otp[i]);
         }  
     } 
+    async savelocalstorage() {
+        await this.page.context().storagestate({ path: 'storageState.json' });
+    }
 }
+module.exports = { loginPage };
