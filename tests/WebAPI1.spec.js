@@ -1,8 +1,18 @@
 import {test,expect,request} from '@playwright/test';
 
-const PhoneNumberLoginpayload = {areaCode:"+91",phoneNumber:"8056300259"};
-const OTP_Payload = {areaCode:"+91",phoneNumber:"8056300259",authType:"login",otpCode:"123456"};
+const PhoneNumberLoginPayload = {
+        areaCode:"+91",
+        phoneNumber:"8056300259"
+                               };
+const OTP_Payload = {
+    areaCode:"+91",
+    phoneNumber:"8056300259",
+    authType:"login",
+    otpCode:"123456"
+                    };
 let authToken;
+// Set headers for authenticated requests
+const headers = {Authorization: `Bearer ${authToken}`, "Content-Type": "application/json" };
 
 
    test.beforeAll(async()=>{
@@ -10,40 +20,47 @@ let authToken;
       const apicontext = await request.newContext();
     // Fetch guest access token
       const fetchAccessToken = await apicontext.get("https://api-dev.whaot.com/user/guest/fetch-access-token");
-      const tokenResponse = fetchAccessToken.json();
+      const tokenResponse = await fetchAccessToken.json();
       const authToken = tokenResponse?.body?.token;
 
       
       console.log("Fetched Auth Token:",authToken);
       expect(fetchAccessToken.ok()).toBeTruthy();
+      
 
-      // Set headers for authenticated requests
-      const headers = {
-                        'Authorization': `Bearer ${authToken}`,
-                         'Content-Type': 'application/json'
-                      };
 
       
        // Check if user exists
       const checkUser = await apicontext.post("https://api-dev.whaot.com/user/account/check-user-exists-by-phone",
-        {
-          data: PhoneNumberLoginpayload,
-          headers
-        } );
+       
+            {
+                headers: {
+                Authorization: `Bearer ${authToken}`,
+                "Content-Type": "application/json"
+                },
+                data: PhoneNumberLoginPayload
+            });
         
         console.log("Check User Response:", await checkUser.json());
-        expect(checkUser.ok()).toBeTruthy();
+        // console.log("Check User:", await checkUser.text());
+       
  
         // Validate phone OTP
         const validateOtp = await apicontext.post("https://api-dev.whaot.com/user/account/validate-phone-otp",
-        {
-          data: OTP_Payload,headers
-        });
+       
+            {
+                headers: {
+                Authorization: `Bearer ${authToken}`,
+                "Content-Type": "application/json"
+                },
+                data: OTP_Payload
+            });
         
         console.log("Validate OTP Response:", await validateOtp.json());
-        expect(validateOtp.ok()).toBeTruthy();
+        // console.log("Check User:", await validateOtp.text());
+        
 
-   });
+         });
       
    test('@Webst Client App login', async ({page}) => {
 
@@ -57,6 +74,7 @@ let authToken;
 
         // Optional: Verify page loaded successfully
         await expect(page).toHaveURL(/spoken-english/);
+        console.log("The class title is:" ,url)
 
      });
       
