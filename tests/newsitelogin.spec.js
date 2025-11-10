@@ -1,83 +1,40 @@
-import {test,expect} from '@playwright/test';
-import { off } from 'process';
+import { test, expect } from '@playwright/test';
+import { POManager } from '../pageObjects/POManager.js';
 
-// Function to fill OTP inputs using a loop
-async function fillOTP(page, otpValues) {
-    for (let i = 0; i < otpValues.length; i++) {
-        await page.locator(`#otp-${i}`).fill(otpValues[i]);
-    }
-}
+const dataset = JSON.parse(JSON.stringify(require("../utils/StudentTestData.json")));
 
-test('new login site practice',async({page})=>{
+test.describe('Signup flow', () => {
 
-    //site go
-    await page.goto("https://dev.whaot.com/");
-    console.log(await page.title());
+  for (const data of [dataset]) {
+    test(`Signup test for ${data.email}`, async ({ page }) => {
 
-    //locators
-    const Month = "November";
-    const date = "11" ;
-    const year = "2025" ;
-    const Gender = "Male"
-    const Signup = page.locator('a:has-text("Sign Up / Sign In")');
-    const Mobilenumber = page.locator('input[type="tel"]');
-    const Proceed = page.locator("//button[normalize-space()='Proceed']");
+      const pOManager = new POManager(page);
+      const signupPage = pOManager.getSignupPage();
 
-    // const Continue = page.locator("//button[normalize-space()='Continue']")
-    const emailaddress= page.locator("//input[contains(@placeholder,'Enter your email address')]");
-    const sendOTP = page.locator("//button[normalize-space()='Send OTP']")
-    const verifyOTP =page.locator('button:has-text("Verify")');
-    const Skippassword = page.locator("//button[normalize-space()='Skip']");
-    const Childname = page.getByRole('textbox').first();
-    const Submitbutton = page.locator('button:has-text("Submit")');
+      await signupPage.webiste_url_Page_going(data.Website_Url);
+      await signupPage.clickSignupLink();
 
+      await signupPage.enterPhoneNumber(data.phoneNumber);
+      await signupPage.enterOtp(data.otp);
+      await signupPage.enterEmail(data.email);
+      await signupPage.enterEmailOtp(data.otp);
+      await signupPage.enterPassword(data.password);
+      await signupPage.enterConfirmPassword(data.confirmpassword);
+      await signupPage.clickContinue();
 
-    //signup
-    await Signup.click();
-    await Mobilenumber.fill("1235488434");
-    await Proceed.click();
-    await fillOTP(page, ["1", "2", "3", "4", "5", "6"]);
-    // await Continue.click();
-    await page.waitForTimeout(4000);
-    
-    await emailaddress.fill("testjack3@fexbox.org");
-    await sendOTP.click();
-    await fillOTP(page, ["1", "2", "3", "4", "5", "6"]);
-    await Skippassword.click();
-    await Childname.fill("yashwanth");
-    await page.locator('.react-datepicker__input-container input').click();
-    await page.selectOption('.react-datepicker__month-select', { label: Month });
-    await page.selectOption('.react-datepicker__year-select', { label: year });
-    await page.click(`.react-datepicker__day--0${date.toString().padStart(2, '0')}`);
+      await signupPage.enterChildFirstName(data.children_firstName);
+      await signupPage.enterChildLastName(data.children_lastName);
+      await signupPage.selectChildDob(data.children_dateOfBirth);
+      await signupPage.selectChildGender();
+      await signupPage.selectChildGrade();
 
-    // Wait for and click the gender dropdown, then select 'Male'
-    const genderdropdowns = page.locator('#react-select-2-placeholder');
-    await genderdropdowns.click();
-    
-    // Select the 'Male' option from the dropdown
-    await page.locator('#react-select-2-option-0').click();
-    
-    // Wait for and click the Grade dropdown, then select 'Pre-Kindergarten'
-    
-    const Gradedropdowns = page.locator('#react-select-3-placeholder');
-    await Gradedropdowns.click();
-    
-    // Select the 'Pre-Kindergarten' option from the dropdown
-    await page.locator('#react-select-3-option-2').click();
-    
-    
-    await page.getByRole('textbox').nth(3).fill('Gopal');
-    await page.getByRole('textbox').nth(5).fill('9/11');
-    await page.locator('.react-autosuggest__container > .border-\\[\\#BDBDBD\\]').click();
-    await page.locator('.react-autosuggest__container > .border-\\[\\#BDBDBD\\]').fill('salem');
-    await page.locator('#react-autowhatever-1--item-0').getByText('Salem, Tamil Nadu').click();
-    await Submitbutton.click();
+      await signupPage.enterParentFirstName(data.Parentname);
+      await signupPage.enterAddress(data.doorNo, data.address_location);
 
+      await signupPage.clickSubmit_signup_details();
 
-    
-    //login
-    //homepage get content
-   
-   
-
+      // Optionally validate final navigation
+      await expect(page.getByRole('heading', { name: /successfully registered/i })).toBeVisible();
+    });
+  }
 });
